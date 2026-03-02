@@ -1,0 +1,58 @@
+acme:
+  # ACME account email (required, used for expiry notifications)
+  email: admin@example.com
+
+  # ACME CA directory URL
+  # Production: https://acme-v02.api.letsencrypt.org/directory
+  # Staging:    https://acme-staging-v02.api.letsencrypt.org/directory
+  ca_url: https://acme-v02.api.letsencrypt.org/directory
+
+  # Persistent storage for ACME account key and certificate metadata
+  storage: /data/certs
+
+cloudflare:
+  # --- Mode 1: Single API token covering all zones ---
+  # Use this if one token has access to all zones (e.g., cross-account member).
+  # Can also be set via CF_API_TOKEN environment variable.
+  # api_token: "your-cloudflare-api-token"
+
+  # --- Mode 2: Per-account API tokens ---
+  # Use this if domains are in different accounts with separate tokens.
+  # Token env var override: CF_ACCOUNT_<NAME>_TOKEN (uppercase name)
+  accounts:
+    - name: my-account
+      api_token: "token-for-my-account"
+    - name: friend-account
+      api_token: "token-for-friend-account"
+
+# Domains to include in the certificate (SAN).
+# Can span multiple Cloudflare zones and accounts.
+domains:
+  - mail.example.com
+  - mail.friend.org
+
+deploy:
+  # Path to write the fullchain certificate (PEM)
+  cert_path: /etc/dms/custom-certs/fullchain.pem
+
+  # Path to write the private key (PEM)
+  key_path: /etc/dms/custom-certs/privkey.pem
+
+  reload:
+    # Reload method: "docker" or "hook"
+    method: docker
+
+    # Docker restart settings (used when method=docker)
+    docker:
+      container_name: mailserver
+
+    # Hook script settings (used when method=hook)
+    # hook:
+    #   command: "/scripts/reload.sh"
+
+scheduler:
+  # How often to check if renewal is needed (e.g., 12h, 24h)
+  check_interval: 24h
+
+  # Renew when certificate expires within this duration (e.g., 720h = 30 days)
+  renew_before_expiry: 720h

@@ -1,0 +1,45 @@
+services:
+  mailserver:
+    image: ghcr.io/docker-mailserver/docker-mailserver:latest
+    container_name: mailserver
+    hostname: mail.example.com
+    ports:
+      - "25:25"
+      - "465:465"
+      - "587:587"
+      - "993:993"
+    environment:
+      - SSL_TYPE=manual
+      - SSL_CERT_PATH=/tmp/dms/custom-certs/fullchain.pem
+      - SSL_KEY_PATH=/tmp/dms/custom-certs/privkey.pem
+    volumes:
+      - certs:/tmp/dms/custom-certs:ro
+      - mail-data:/var/mail
+      - mail-state:/var/mail-state
+      - mail-logs:/var/log/mail
+      - ./docker-data/dms/config:/tmp/docker-mailserver
+    restart: unless-stopped
+
+  cf-mail-cert:
+    build: .
+    container_name: cf-mail-cert
+    volumes:
+      - ./config.yaml:/etc/cf-mail-cert/config.yaml:ro
+      - certs:/etc/dms/custom-certs
+      - cert-data:/data/certs
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+    depends_on:
+      - mailserver
+
+volumes:
+  certs:
+    driver: local
+  cert-data:
+    driver: local
+  mail-data:
+    driver: local
+  mail-state:
+    driver: local
+  mail-logs:
+    driver: local
